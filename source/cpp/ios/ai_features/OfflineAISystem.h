@@ -192,6 +192,12 @@ public:
     std::unordered_map<std::string, std::string> GetScriptTemplates() const;
     
     /**
+     * @brief Get template cache
+     * @return Map of template names to templates
+     */
+    std::unordered_map<std::string, std::string> GetTemplateCache() const;
+    
+    /**
      * @brief Generate response for a detection event
      * @param detectionType Detection type
      * @param signature Detection signature

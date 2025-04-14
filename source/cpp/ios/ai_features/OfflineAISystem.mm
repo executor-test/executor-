@@ -68,7 +68,7 @@ bool OfflineAISystem::Initialize(const std::string& modelPath, std::function<voi
         
         if (scriptGenInitialized) {
             m_scriptGeneratorModel = scriptGenerator.get();
-            m_modelCache["script_generator"] = scriptGenerator;
+            m_modelCache["script_generator"] = scriptGenerator.get();
             m_loadedModelNames.push_back("script_generator");
         } else {
             std::cerr << "OfflineAISystem: Failed to initialize script generator model" << std::endl;
@@ -82,7 +82,7 @@ bool OfflineAISystem::Initialize(const std::string& modelPath, std::function<voi
         
         if (vulnerabilityInitialized) {
             m_patternRecognitionModel = vulnerabilityDetector.get();
-            m_modelCache["vulnerability_detector"] = vulnerabilityDetector;
+            m_modelCache["vulnerability_detector"] = vulnerabilityDetector.get();
             m_loadedModelNames.push_back("vulnerability_detector");
         } else {
             std::cerr << "OfflineAISystem: Failed to initialize vulnerability detector" << std::endl;
@@ -368,6 +368,7 @@ OfflineAISystem::AIResponse OfflineAISystem::ProcessScriptDebugging(const AIRequ
         std::regex varRegex("\\b([a-zA-Z][a-zA-Z0-9_]*)\\s*=");
         std::regex useRegex("\\b([a-zA-Z][a-zA-Z0-9_]*)\\b");
         
+        // Define variable sets before using them
         std::set<std::string> definedVars;
         std::set<std::string> usedVars;
         std::set<std::string> builtinVars = {
@@ -405,7 +406,9 @@ OfflineAISystem::AIResponse OfflineAISystem::ProcessScriptDebugging(const AIRequ
         // Find undefined variables
         std::vector<std::string> undefinedVars;
         for (const auto& var : usedVars) {
-            if (definedVars.find(var) == definedVars.end()) {
+            // Check if this variable is defined
+            auto it = definedVars.find(var);
+            if (it == definedVars.end()) {
                 undefinedVars.push_back(var);
             }
         }
@@ -661,7 +664,8 @@ bool OfflineAISystem::IsModelLoaded(const std::string& modelName) const {
 void* OfflineAISystem::GetModel(const std::string& modelName) const {
     auto it = m_modelCache.find(modelName);
     if (it != m_modelCache.end()) {
-        return it->second.get();
+        // Direct access to pointer instead of using get() since we're storing raw pointers now
+        return it->second;
     }
     return nullptr;
 }
@@ -871,11 +875,11 @@ print("Aimbot loaded. Hold right mouse button to aim. Press Y to toggle.")
 
 // Get script templates
 std::unordered_map<std::string, std::string> OfflineAISystem::GetScriptTemplates() const {
-    return m_templateCache;
+    return m_scriptTemplates;
 }
 
-// Get a list of script templates
-std::unordered_map<std::string, std::string> OfflineAISystem::GetScriptTemplates() const {
+// Get template cache
+std::unordered_map<std::string, std::string> OfflineAISystem::GetTemplateCache() const {
     return m_templateCache;
 }
 
