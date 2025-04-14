@@ -203,8 +203,9 @@ namespace iOS {
             UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:button action:@selector(handleTap:)];
             [button addGestureRecognizer:tapGesture];
             
-            // Store the button and apply initial position
-            m_buttonView = (__bridge_retained void*)button;
+            // Store the button and apply initial position (manual memory management)
+            m_buttonView = (void*)button;
+            [button retain]; // Explicitly retain the button since we're not using ARC
             UpdateButtonPosition();
             
             // Initially hidden
@@ -215,8 +216,9 @@ namespace iOS {
     // Destructor
     FloatingButtonController::~FloatingButtonController() {
         if (m_buttonView) {
-            FloatingButton* button = (__bridge_transfer FloatingButton*)m_buttonView;
+            FloatingButton* button = (FloatingButton*)m_buttonView;
             [button removeFromSuperview];
+            [button release]; // Explicitly release since we're manually retaining
             m_buttonView = nullptr;
         }
     }
@@ -533,9 +535,9 @@ namespace iOS {
                                               }
                                               completion:^(BOOL finished) {
                                                   // Call the tap callback
-                                                  // Access tap callback through a public method instead
+                                                  // Cast to id to avoid the warning about non-id receiver
                                                   if (self.controller) {
-                                                      [self.controller performTapAction];
+                                                      [(id)self.controller performTapAction];
                                                   }
                                               }];
                          }];
